@@ -1,0 +1,135 @@
+import com.diffplug.spotless.extra.wtp.EclipseWtpFormatterStep
+
+buildscript {
+	dependencies {
+		classpath("org.openapitools:openapi-generator-gradle-plugin:7.1.0")
+	}
+}
+
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.4.1'
+	id 'io.spring.dependency-management' version '1.1.7'
+	id "org.openapi.generator" version "7.1.0"
+	id 'org.asciidoctor.jvm.convert' version '3.3.2'
+	id 'com.diffplug.spotless' version '6.25.0' apply false
+}
+ext {
+	set('mapstructVersion', "1.5.5.Final")
+	set('snippetsDir', file("build/generated-snippets"))
+}
+
+group = 'cm.codenova'
+version = '0.0.1-SNAPSHOT'
+apply plugin: 'com.diffplug.spotless'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation('org.eclipse.persistence:eclipselink:2.7.7')
+	implementation 'org.springframework.boot:spring-boot-starter-data-rest'
+	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'junit:junit:4.13.1'
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	// Mapstruct
+	implementation("org.mapstruct:mapstruct:${mapstructVersion}")
+	annotationProcessor("org.mapstruct:mapstruct-processor:${mapstructVersion}")
+	testAnnotationProcessor("org.mapstruct:mapstruct-processor:${mapstructVersion}")
+	implementation 'javax.money:money-api:1.1'
+	implementation 'org.javamoney:moneta:1.4.2'
+	//postgres
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.postgresql:postgresql'
+
+	// OPENAPI
+	implementation('io.swagger:swagger-annotations:1.6.11')
+	implementation('org.openapitools:jackson-databind-nullable:0.2.6')
+	implementation('org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0')
+
+	//REST ASSURED
+	testImplementation 'io.rest-assured:rest-assured:5.5.0'
+}
+
+
+openApiGenerate {
+	generatorName = "spring"
+	inputSpec = "$rootDir/openapi/main.yaml".toString()
+	outputDir = layout.buildDirectory.file("generated/sources/openapi").get().asFile.path
+	apiPackage = "cm.codenova.backeng.enspd_lib.backeng.api"
+	modelPackage = "cm.codenova.backeng.enspd_lib.backeng.dto"
+	configOptions = [
+			dateLibrary         : "java8-localdatetime",
+			library             : "spring-boot",
+			interfaceOnly       : "true",
+			useTags             : "true",
+			skipDefaultInterface: "true",
+			useSpringBoot3      : "true",
+			openApiNullable     : "false"
+	]
+	typeMappings = [
+			time: "java.time.LocalTime",
+	]
+}
+
+sourceSets.main.java.srcDir layout.buildDirectory.file("generated/sources/openapi/src/main/java").get().asFile.path
+
+compileJava.dependsOn(
+		tasks.openApiGenerate
+)
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+tasks.named('asciidoctor') {
+	inputs.dir snippetsDir
+	dependsOn test
+}
+
+spotless {
+	java {
+		toggleOffOn()
+		googleJavaFormat('1.22.0')
+				.reflowLongStrings()
+				.formatJavadoc(true)
+				.reorderImports(true)
+				.groupArtifact('com.google.googlejavaformat:google-java-format')
+	}
+	groovyGradle {
+		target '*.gradle'
+		greclipse()
+	}
+	format 'xml', {
+		target 'src/*/resources/**/*.xml'
+		eclipseWtp('xml')
+	}
+	yaml {
+		target 'src/*/resources/**/*.yaml','src/*/resources/**/*.yml','openapi/main.yaml'
+		jackson()
+				.feature('ORDER_MAP_ENTRIES_BY_KEYS', true)
+	}
+	gherkin {
+		target 'src/test/resources/**/*.feature'
+		gherkinUtils()
+				.version('9.0.0')
+	}
+}
