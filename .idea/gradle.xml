@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="GradleMigrationSettings" migrationVersion="1" />
+  <component name="GradleSettings">
+    <option name="linkedExternalProjectsSettings">
+      <GradleProjectSettings>
+        <option name="distributionType" value="LOCAL" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$/cm.endp_lib.backeng" />
+        <option name="gradleHome" value="$USER_HOME$/.sdkman/candidates/gradle/8.7" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/cm.endp_lib.backeng" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+      <GradleProjectSettings>
+        <option name="distributionType" value="LOCAL" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$/endp-lib.back" />
+        <option name="gradleHome" value="$USER_HOME$/.sdkman/candidates/gradle/8.7" />
+      </GradleProjectSettings>
+      <GradleProjectSettings>
+        <option name="externalProjectPath" value="$PROJECT_DIR$/endp_lib.back" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/endp_lib.back" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+    </option>
+  </component>
+</project>
